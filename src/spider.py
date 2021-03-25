@@ -62,4 +62,5 @@ def retrieve_BioPepDB(query_para, page_start, page_end, store_path):
 
 if __name__ == '__main__':
     # retrieve_BioPepDB('antihypertensive', 0, 83, '/home/han/antihypertensive_1653')
-    retrieve_BioPepDB('antimicrobial', 0, 123, '/home/han/antimicrobial_2455')
+    # retrieve_BioPepDB('antimicrobial', 0, 123, '/home/han/antimicrobial_2455')
+    retrieve_BioPepDB('anticancer', 0, 32, '/home/han/anticancer_635')

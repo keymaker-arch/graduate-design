@@ -2,6 +2,7 @@ import math
 import re
 from argparse import ArgumentParser
 
+
 property_dic = {
     'property_chou': {
         'A': '0.62	-0.5	15.0	2.35	9.87	6.11',
@@ -180,7 +181,7 @@ def matrix_extend(matrix, dimensionX, dimensionY):
 
 
 def matrix_output_to_file(matrix, file_path):
-    with open(file_path, 'w') as fp_out:
+    with open(file_path, 'a') as fp_out:
         for row in matrix:
             for col in row:
                 fp_out.write(col + '\t')
@@ -205,10 +206,13 @@ if __name__ == '__main__':
     #         matrix = pep2matrix(pep)
     #         matrix = matrix_extend(matrix, 20, 20)
     #         matrix_output_to_file(matrix, f)
-    matrix = pep2matrix('AADHW')
-    print(len(matrix[0]))
-    print(len(matrix))
-    matrix = matrix_extend(matrix, 5, 13)
-    for line in matrix:
-        print(line)
-    matrix_output_to_file(matrix, '/home/han/test')
+
+    # matrix = pep2matrix('AADHW')
+    # print(len(matrix[0]))
+    # print(len(matrix))
+    # matrix = matrix_extend(matrix, 5, 13)
+    # for line in matrix:
+    #     print(line)
+    # matrix_output_to_file(matrix, '/home/han/test')
+
+    print(property_dic['index'].keys())
