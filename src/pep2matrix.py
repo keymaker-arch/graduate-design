@@ -1,6 +1,7 @@
-import math
 import re
-from argparse import ArgumentParser
+import pep_statistic
+import random
+import copy
 
 
 property_dic = {
@@ -95,124 +96,293 @@ property_dic = {
 }
 
 
-# convert an amino acid character to vector according to matrix_type
-def convert(char, matrix_type):
-    assert 65 <= ord(char) <= 90, 'unrecognized amino acid!'
-    if char == 'G':
-        rtn_str = property_dic[matrix_type]['G']
-    elif char == 'A':
-        rtn_str = property_dic[matrix_type]['A']
-    elif char == 'V':
-        rtn_str = property_dic[matrix_type]['V']
-    elif char == 'L':
-        rtn_str = property_dic[matrix_type]['L']
-    elif char == 'I':
-        rtn_str = property_dic[matrix_type]['I']
-    elif char == 'M':
-        rtn_str = property_dic[matrix_type]['M']
-    elif char == 'P':
-        rtn_str = property_dic[matrix_type]['P']
-    elif char == 'F':
-        rtn_str = property_dic[matrix_type]['F']
-    elif char == 'W':
-        rtn_str = property_dic[matrix_type]['W']
-    elif char == 'S':
-        rtn_str = property_dic[matrix_type]['S']
-    elif char == 'T':
-        rtn_str = property_dic[matrix_type]['T']
-    elif char == 'N':
-        rtn_str = property_dic[matrix_type]['N']
-    elif char == 'Q':
-        rtn_str = property_dic[matrix_type]['Q']
-    elif char == 'Y':
-        rtn_str = property_dic[matrix_type]['Y']
-    elif char == 'C':
-        rtn_str = property_dic[matrix_type]['C']
-    elif char == 'K':
-        rtn_str = property_dic[matrix_type]['K']
-    elif char == 'R':
-        rtn_str = property_dic[matrix_type]['R']
-    elif char == 'H':
-        rtn_str = property_dic[matrix_type]['H']
-    elif char == 'D':
-        rtn_str = property_dic[matrix_type]['D']
-    elif char == 'E':
-        rtn_str = property_dic[matrix_type]['E']
-    else:
-        print('[-]wrong character in file!')
-        rtn_str = 'None'
-    return rtn_str
+class Peptide:
+    def __init__(self, peptide_seq, dimension_tuple=None):
+        self.sequence = peptide_seq
+        self.matrix = []
+        self.dimension_tuple = dimension_tuple
+        self.do_transfer()
 
+    # convert an amino acid character to vector according to matrix_type
+    @staticmethod
+    def convert(char, matrix_type):
+        assert 65 <= ord(char) <= 90 or char== '*', 'unrecognized amino acid!'
+        if char == 'G':
+            rtn_str = property_dic[matrix_type]['G']
+        elif char == 'A':
+            rtn_str = property_dic[matrix_type]['A']
+        elif char == 'V':
+            rtn_str = property_dic[matrix_type]['V']
+        elif char == 'L':
+            rtn_str = property_dic[matrix_type]['L']
+        elif char == 'I':
+            rtn_str = property_dic[matrix_type]['I']
+        elif char == 'M':
+            rtn_str = property_dic[matrix_type]['M']
+        elif char == 'P':
+            rtn_str = property_dic[matrix_type]['P']
+        elif char == 'F':
+            rtn_str = property_dic[matrix_type]['F']
+        elif char == 'W':
+            rtn_str = property_dic[matrix_type]['W']
+        elif char == 'S':
+            rtn_str = property_dic[matrix_type]['S']
+        elif char == 'T':
+            rtn_str = property_dic[matrix_type]['T']
+        elif char == 'N':
+            rtn_str = property_dic[matrix_type]['N']
+        elif char == 'Q':
+            rtn_str = property_dic[matrix_type]['Q']
+        elif char == 'Y':
+            rtn_str = property_dic[matrix_type]['Y']
+        elif char == 'C':
+            rtn_str = property_dic[matrix_type]['C']
+        elif char == 'K':
+            rtn_str = property_dic[matrix_type]['K']
+        elif char == 'R':
+            rtn_str = property_dic[matrix_type]['R']
+        elif char == 'H':
+            rtn_str = property_dic[matrix_type]['H']
+        elif char == 'D':
+            rtn_str = property_dic[matrix_type]['D']
+        elif char == 'E':
+            rtn_str = property_dic[matrix_type]['E']
+        elif char == '*':
+            rtn_str = property_dic[matrix_type]['E']
+        else:
+            print('[-]wrong character in peptide sequence!')
+            rtn_str = 'None'
+        return rtn_str
 
-def pep2matrix(peptide):
-    def transpose(matrix):
-        new_matrix = []
-        for i in range(len(matrix[0])):
-            matrix1 = []
-            for j in range(len(matrix)):
-                matrix1.append(matrix[j][i])
-            new_matrix.append(matrix1)
-        return new_matrix
+    # ************ bottom implementation *************
+    def pep2matrix(self):
+        def transpose(matrix):
+            new_matrix = []
+            for i in range(len(matrix[0])):
+                matrix1 = []
+                for j in range(len(matrix)):
+                    matrix1.append(matrix[j][i])
+                new_matrix.append(matrix1)
+            return new_matrix
 
-    rtn_matrix = []
-    for aa in peptide:
-        tmp_vector = [convert(aa, 'index')]
-        tmp = convert(aa, 'property')
-        tmp_vector.extend(tmp.split('\t'))
-        tmp = convert(aa, 'property_chou')
-        tmp_vector.extend(tmp.split('\t'))
-        rtn_matrix.append(tmp_vector)
-        # rtn_materxi.append()
-    return transpose(rtn_matrix)
+        for aa in self.sequence:
+            try:
+                tmp_vector = [self.convert(aa, 'index')]
+                tmp = self.convert(aa, 'property')
+                tmp_vector.extend(tmp.split('\t'))
+                tmp = self.convert(aa, 'property_chou')
+                tmp_vector.extend(tmp.split('\t'))
+                self.matrix.append(tmp_vector)
+            except AssertionError:
+                print(self.sequence)
+        self.matrix = transpose(self.matrix)
+    # ************ bottom implementation *************
 
+    def matrix_extend(self, dimensionX, dimensionY):
+        X_matrix = len(self.matrix[0])
+        Y_matrix = len(self.matrix)
+        assert X_matrix <= dimensionX, 'target dimension X too small'
+        assert Y_matrix <= dimensionY, 'target dimension Y too small'
+        for row in self.matrix:
+            for i in range(0, dimensionX - X_matrix):
+                row.append('0')
+        tmp_vec = ['0' for i in range(0, dimensionX)]
+        for i in range(0, dimensionY - Y_matrix):
+            self.matrix.append(tmp_vec)
 
-def matrix_extend(matrix, dimensionX, dimensionY):
-    X_matrix = len(matrix[0])
-    Y_matrix = len(matrix)
-    assert X_matrix <= dimensionX, 'target dimension X too small'
-    assert Y_matrix <= dimensionY, 'target dimension Y too small'
-    for row in matrix:
-        for i in range(0, dimensionX - X_matrix):
-            row.append('0')
-    tmp_vec = ['0' for i in range(0, dimensionX)]
-    for i in range(0, dimensionY - Y_matrix):
-        matrix.append(tmp_vec)
-    return matrix
+    def do_transfer(self):
+        self.pep2matrix()
+        if self.dimension_tuple:
+            self.matrix_extend(self.dimension_tuple[0], self.dimension_tuple[1])
+        return self.matrix
 
-
-def matrix_output_to_file(matrix, file_path):
-    with open(file_path, 'a') as fp_out:
-        for row in matrix:
-            for col in row:
-                fp_out.write(col + '\t')
+    def matrix_output_to_file(self, file_path):
+        with open(file_path, 'a') as fp_out:
+            for row in self.matrix:
+                for col in row:
+                    fp_out.write(col + '\t')
+                fp_out.write('\n')
             fp_out.write('\n')
-        fp_out.write('\n')
+
+    def print_matrix(self):
+        for line in self.matrix:
+            print(line)
+
+    def print_sequence(self):
+        print(self.sequence)
 
 
-def pep_input_from_file(file_in):
-    pep_list = []
-    with open(file_in, 'r') as fp_in:
-        for line in fp_in:
-            pep_list.append(line.replace('\n', ''))
-    return pep_list
+class PeptideDataset:
+    def __init__(self, file_path, sequence_list=None, dimension_tuple=None, threshold_tuple=None):
+        if sequence_list:
+            self.sequence_total = sequence_list
+        else:
+            self.fp_in = open(file_path, 'r')
+            self.sequence_total = [line.strip('\n') for line in self.fp_in]
+            self.fp_in.close()
+        self.remove_dirt()
+        self.matrix_total = []
+        self.matrix_num = 0
+        self.seq_num = len(self.sequence_total)
+        self.fix_dimension_tuple = dimension_tuple
+        self.threshold = threshold_tuple
+        self.split_dataset = {}
+        self.statistic_info = pep_statistic.pep_statistics(self.sequence_total)
+        self.training_dataset = None
+        self.validation_dataset = None
+
+    def remove_dirt(self):
+        self.sequence_total = list(set(self.sequence_total))
+        strange = []
+        legal_seq = []
+        for seq in self.sequence_total:
+            if re.match('^[GAVLIFPSTHWCDEKYMNQR\*]+$', seq):
+                legal_seq.append(seq.replace('*', 'E'))
+            else:
+                strange.append(seq)
+        if strange:
+            print('[+] sequence legal check: following %d lines are removed' % len(strange))
+            for line in strange:
+                print('\t' + line)
+        self.sequence_total = legal_seq
+        self.seq_num = len(self.sequence_total)
+
+    def apply_threshold(self):
+        if not self.threshold:
+            print('[-] threshold not set')
+            exit()
+        _seq_list = []
+        stripped_seq_list = []
+        for _pep in self.sequence_total:
+            if self.threshold[0] <= len(_pep) <= self.threshold[1]:
+                _seq_list.append(_pep)
+            else:
+                stripped_seq_list.append(_pep)
+        self.sequence_total = _seq_list
+        self.seq_num = len(self.sequence_total)
+        self.statistic_info = pep_statistic.pep_statistics(self.sequence_total)
+        print('[+] apply peptide sequence length threshold: %d peptides removed, %d peptides left in dataset' % (len(stripped_seq_list), self.seq_num))
+        return stripped_seq_list
+
+    def sequence2matrix(self):
+        if not len(self.matrix_total):
+            for sequence in self.sequence_total:
+                _pep = Peptide(sequence, self.fix_dimension_tuple)
+                self.matrix_total.append(_pep.matrix)
+            self.matrix_num = len(self.matrix_total)
+        return self.matrix_total
+
+    def pep_len_distribution(self, fig_store_path):
+        pep_statistic.plot_pep_len_distribution(self.statistic_info, fig_store_path)
+        print('[+] generate peptide length distribution figure')
+
+    def aa_abundance_overview(self, fig_store_path):
+        pep_statistic.plot_aa_abundance_overview(self.statistic_info, fig_store_path)
+        print('[+] generate amino acid abundance global distribution figure')
+
+    def matrix_output_file(self, output_file_path):
+        if not len(self.matrix_total):
+            self.sequence2matrix()
+        with open(output_file_path, 'w') as fp:
+            for matrix in self.matrix_total:
+                for row in matrix:
+                    for col in row:
+                        fp.write(col + '\t')
+                    fp.write('\n')
+                fp.write('\n')
+        print('[+] write %d matrices to file done' % len(self.matrix_total))
+
+    def sequence_output_file(self, output_file_path):
+        with open(output_file_path, 'w') as fp:
+            for line in self.sequence_total:
+                fp.write(line + '\n')
+        print('[+] write %d peptide sequences to file done' % len(self.sequence_total))
+
+    def print_sequence(self):
+        for seq in self.sequence_total:
+            print(seq)
+
+    def print_matrix_num(self):
+        if not len(self.matrix_total):
+            self.sequence2matrix()
+        self.matrix_num = len(self.matrix_total)
+        print('[+] %d matrices in dataset' % self.matrix_num)
+
+    def print_seq_num(self):
+        self.seq_num = len(self.sequence_total)
+        print('[+] %d peptides sequence in dataset' % self.seq_num)
+
+    # split a dataset to training set and validation set
+    # file_path_tuple = (training_seq_file, training_matrix_file, validation_seq_file, validation_matrix_file)
+    def splitting_dataset(self, rate):
+        validation_set_num = int(self.seq_num * rate)
+        validation_set = []
+        full_set = copy.deepcopy(self.sequence_total)
+        while len(validation_set) < validation_set_num:
+            validation_set.append(full_set.pop())
+        training_set = full_set
+        training_dataset = PeptideDataset(None, sequence_list=training_set, dimension_tuple=self.fix_dimension_tuple)
+        print('[+] dataset splitting: %d peptides in training dataset' % training_dataset.seq_num)
+        validation_dataset = PeptideDataset(None, sequence_list=validation_set, dimension_tuple=self.fix_dimension_tuple)
+        print('[+] dataset splitting: %d peptides in validation dataset' % validation_dataset.seq_num)
+        self.split_dataset = {'training_dataset': training_dataset, 'validation_dataset': validation_dataset}
+        self.training_dataset = training_dataset
+        self.validation_dataset = validation_dataset
+        return self.split_dataset
+
+
+class RandomPepDataset(PeptideDataset):
+    # generate a random peptide dataset according to template(a PeptideDataset object)
+    def __init__(self, template, num_rate=1):
+        super(RandomPepDataset, self).__init__(None, sequence_list=template.sequence_total,
+                                               dimension_tuple=template.fix_dimension_tuple, threshold_tuple=template.threshold)
+        if not self.threshold:
+            print('[-] to generate random peptides, threshold must be set on template dataset')
+            exit()
+        self.sequence_total = []
+        self.seq_num = int(self.seq_num * num_rate)
+        self.generate_random_peptides()
+        self.statistic_info = pep_statistic.pep_statistics(self.sequence_total)
+
+    def generate_random_peptides(self):
+        aa_candidate = 'GAVLIFPSTHWCDEKYMNQR'
+        pep_len_distribution = []
+        for i in range(self.seq_num):
+            gauss_num = 0
+            while gauss_num < self.threshold[0] or gauss_num > self.threshold[1]:
+                gauss_num = int(random.gauss(self.statistic_info['pep_len_average'], self.statistic_info['pep_len_deviation']))
+            pep_len_distribution.append(gauss_num)
+        for _len in pep_len_distribution:
+            pep_seq = ''
+            for i in range(0, _len):
+                pep_seq += aa_candidate[random.randint(0, 19)]
+            assert pep_seq != ''
+            self.sequence_total.append(pep_seq)
 
 
 if __name__ == '__main__':
-    # file_name = '/home/han/test_input'
-    # pep_l = pep_input_from_file(file_name)
-    # file_name_out = '/home/han/test_out'
-    # with open(file_name_out, 'w') as f:
-    #     for pep in pep_l:
-    #         matrix = pep2matrix(pep)
-    #         matrix = matrix_extend(matrix, 20, 20)
-    #         matrix_output_to_file(matrix, f)
+    def wrapper(base_dir, file_name, dimension=None, threshold=None):
+        if not dimension or not threshold:
+            ds = PeptideDataset(base_dir + file_name)
+            ds.print_seq_num()
+            ds.pep_len_distribution(base_dir + file_name + '_len_distr.html')
+            ds.aa_abundance_overview(base_dir + file_name + '_aa_distr.html')
+            return
+        ds = PeptideDataset(base_dir +file_name, dimension_tuple=dimension, threshold_tuple=threshold)
+        ds.apply_threshold()
+        ds.pep_len_distribution(base_dir + file_name + '_len_distr_pos.html')
+        ds.aa_abundance_overview(base_dir + file_name + '_aa_distr_pos.html')
+        ds.splitting_dataset(0.3)
+        ds.training_dataset.matrix_output_file(base_dir + file_name + '_matrix_training_pos')
+        ds.validation_dataset.matrix_output_file(base_dir + file_name + '_matrix_validation_pos')
 
-    # matrix = pep2matrix('AADHW')
-    # print(len(matrix[0]))
-    # print(len(matrix))
-    # matrix = matrix_extend(matrix, 5, 13)
-    # for line in matrix:
-    #     print(line)
-    # matrix_output_to_file(matrix, '/home/han/test')
+        rnd_ds = RandomPepDataset(ds)
+        rnd_ds.pep_len_distribution(base_dir + file_name + '_len_distr_neg.html')
+        rnd_ds.aa_abundance_overview(base_dir + file_name + '_aa_distr_neg.html')
+        rnd_ds.splitting_dataset(0.3)
+        rnd_ds.training_dataset.matrix_output_file(base_dir + file_name + '_matrix_training_neg')
+        rnd_ds.validation_dataset.matrix_output_file(base_dir +file_name + '_matrix_validation_neg')
 
-    print(property_dic['index'].keys())
+    # wrapper('/home/han/文档/毕设/datasets/antimicrobial/', 'antimicrobial')
+    wrapper('/home/han/文档/毕设/datasets/antimicrobial/', 'antimicrobial', dimension=(60, 13), threshold=(5, 60))
+
